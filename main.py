@@ -2,11 +2,11 @@ from fastapi import FastAPI, Body, Path
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional
-from jwt import createToken
+from jwt_auth import createToken
 
 
 app = FastAPI(
-    title = "Aprendiendo FastAPI"
+    title = "Aprendiendo FastAPI",
     version='0.0.1'
 )
 
@@ -41,6 +41,8 @@ movies = [
 @app.post('/login/', tags=["Autenticacion"])
 def login(user: User):
     return user
+
+
 
 
 @app.get('/', tags=["inicio"])

@@ -5,4 +5,3 @@ def createToken(data: dict):
     return token
 
 
-    
