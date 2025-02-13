@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Body, Path
+from fastapi import FastAPI, Body, Path, Depends
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Annotated
 from jwt_auth import createToken
 
 
@@ -37,18 +38,44 @@ movies = [
         }
 ]
 
+## LOGIN AND SECURITY
+oauth = OAuth2PasswordBearer(tokenUrl='token')
+
 
 @app.post('/login/', tags=["Autenticacion"])
-def login(user: User):
-    return user
+def login(token: Annotated[str, Depends(oauth)]):
+    return token
 
 
 
+# Bearing one method from movies
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## JUST MOVIES LIST ENDPOINTS
 
 @app.get('/', tags=["inicio"])
 def read_root():
     return HTMLResponse('<h1>Hello world!</h1>')
 
+@app.get('/movies', tags=['Movies'])
+def get_movies():
+    return JSONResponse(content=movies)
 
 @app.get('/movies', tags=['Movies'])
 def get_movies():
