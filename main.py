@@ -4,12 +4,17 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional, Annotated
 from jwt_auth import createToken, validateToken
+from storage.database import Base, engine, Session
+from models.movieModel import Movie as movieModel
 
 
 app = FastAPI(
     title = "Aprendiendo FastAPI",
     version='0.0.1'
 )
+
+
+Base.metadata.create_all(bind=engine)
 
 class Movie(BaseModel):
     id: Optional[int] = None
@@ -65,22 +70,11 @@ def get_movies():
 
 
 
-
-
-
-
-
-
-
-
-## JUST MOVIES LIST ENDPOINTS
+###  MOVIES LIST ENDPOINTS ###
 
 @app.get('/', tags=["inicio"])
 def read_root():
     return HTMLResponse('<h1>Hello world!</h1>')
-
-
-
 
 
 @app.get('/movies/{id}', tags=['Movies'])
@@ -99,13 +93,14 @@ def get_movies_by_category(category:str):
     return category
 
 
-
-@app.post('/movies/', tags=['Movies'])
+@app.post('/movies/', tags=['Movies'], status_code=201)
 def new_movie(movie: Movie):
-    movies.append(movie)
-    return JSONResponse(content={'Message':'New input done', 'Movie': movie.model_dump_json()})
-
-
+    db = Session()
+    newMovie = Movie(**movie.dict())
+    db.add(newMovie)
+    db.commit()
+    db.close()
+    return JSONResponse(status_code=201, content={'message':'Se ha insertado nueva pelicula', 'movie': '{newMovie["title"]}'})
 
 @app.put('/movies/{id}', tags=['Movies'])
 def update_movie(id:int, movie: Movie):
@@ -125,4 +120,6 @@ def delete_movie(id:int):
             movies.remove(item)
     return movies
 
+
+### 
 
