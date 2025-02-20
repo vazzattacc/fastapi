@@ -96,7 +96,7 @@ def get_movies_by_category(category:str):
 @app.post('/movies/', tags=['Movies'], status_code=201)
 def new_movie(movie: Movie):
     db = Session()
-    newMovie = Movie(**movie.dict())
+    newMovie = movieModel(**movie.dict())
     db.add(newMovie)
     db.commit()
     db.close()
