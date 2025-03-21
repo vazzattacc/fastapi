@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Path, Depends, HTTPException, Request, Response
+from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer, HTTPBearer
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
@@ -66,8 +67,18 @@ def login(user: User):
 
 @app.get('/movies', tags=['Movies'], dependencies = [Depends(BearerJWT())])
 def get_movies():
-    return JSONResponse(content=movies)
+    db = Session()
+    data = db.query(movieModel).all()
+    return JSONResponse(content=jsonable_encoder(data))
 
+
+@app.get('/movie', tags=['Movies'], dependencies = [Depends(BearerJWT())])
+def get_movie(name: str):
+    db = Session()
+    data = db.query(movieModel).filter(movieModel.title == name).first()
+    if not data:
+        return JSONResponse (status_code=404, content={'message':'Recurso no encontrado'})
+    return JSONResponse(status_code=200, content=jsonable_encoder(data))
 
 
 ###  MOVIES LIST ENDPOINTS ###
@@ -77,12 +88,7 @@ def read_root():
     return HTMLResponse('<h1>Hello world!</h1>')
 
 
-@app.get('/movies/{id}', tags=['Movies'])
-def get_movie(id:int = Path(le=100, ge=0)):
-    for item in movies:
-        if item["id"] == id:
-            return item
-    return []
+
 
 
 @app.get('/movies/', tags=['Movies'])
@@ -96,7 +102,7 @@ def get_movies_by_category(category:str):
 @app.post('/movies/', tags=['Movies'], status_code=201)
 def new_movie(movie: Movie):
     db = Session()
-    newMovie = movieModel(**movie.dict())
+    newMovie = movieModel(**movie.model_dump())
     db.add(newMovie)
     db.commit()
     db.close()
