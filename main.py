@@ -63,8 +63,6 @@ def login(user: User):
         return Response(content='Incorrect login', status_code=401, media_type="text/plain") 
 
 
-
-
 @app.get('/movies', tags=['Movies'], dependencies = [Depends(BearerJWT())])
 def get_movies():
     db = Session()
@@ -81,22 +79,13 @@ def get_movie(name: str):
     return JSONResponse(status_code=200, content=jsonable_encoder(data))
 
 
-###  MOVIES LIST ENDPOINTS ###
-
-@app.get('/', tags=["inicio"])
-def read_root():
-    return HTMLResponse('<h1>Hello world!</h1>')
-
-
-
-
-
 @app.get('/movies/', tags=['Movies'])
 def get_movies_by_category(category:str):
-    for item in movies:
-        if item["category"] == category:
-            return item
-    return category
+    db = Session()
+    data = db.query(movieModel).filter(movieModel.category == category).all()
+    if not data:
+        return JSONResponse (status_code=404, content={'message':'Recursos no encontrados'})
+    return JSONResponse(status_code=200, content=jsonable_encoder(data))
 
 
 @app.post('/movies/', tags=['Movies'], status_code=201)
@@ -106,26 +95,30 @@ def new_movie(movie: Movie):
     db.add(newMovie)
     db.commit()
     db.close()
-    return JSONResponse(status_code=201, content={'message':'Se ha insertado nueva pelicula', 'movie': '{newMovie["title"]}'})
+    return JSONResponse(status_code=201, content={'message':'Se ha insertado nueva pelicula', 'movie': '{newMovie.title}'})
 
-@app.put('/movies/{id}', tags=['Movies'])
+@app.put('/movies/{id}', tags=['Movies'], dependencies = [Depends(BearerJWT())])
 def update_movie(id:int, movie: Movie):
-    for item in movies:
-        if item["id"] == id:
-            item['title']=movie.title,
-            item['overview'] = movie.overview,
-            item['year'] = movie.year,
-            item['rating'] = movie.rating,
-            item['category'] = movie.category,
-            return movies
+    db = Session()
+    data = db.query(movieModel).filter(movieModel.id == id).first()
+    if not data:
+        return JSONResponse(status_code=404, content={'message':'No se encontro el elemento'})
+    else:
+        data.title=movie.title
+        data.overview = movie.overview
+        data.year = movie.year
+        data.rating = movie.rating
+        data.category = movie.category
+        db.commit()
+        return JSONResponse(content={'message':'Se ha modificado la película'})
 
-@app.delete('/movies/{id}', tags=['movies'])
+@app.delete('/movies/{id}', tags=['Movies'], dependencies = [Depends(BearerJWT())])
 def delete_movie(id:int):
-    for item in movies:
-        if item['id']==id:
-            movies.remove(item)
-    return movies
-
-
-### 
-
+    db = Session()
+    data = db.query(movieModel).filter(movieModel.id == id).first()
+    if not data:
+        return JSONResponse(status_code=404, content={'message':'No se encontro el elemento'})
+    else:
+        db.delete(data)
+        db.commit()
+        return JSONResponse(content={'message':'Se ha eliminado la película'})
