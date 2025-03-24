@@ -43,3 +43,44 @@ Consta de Header, Payload y Signature.
 ## JSON web token (JWT)
 >pip install PyJWT
 
+# Database
+Usamos SQLAlchemy
+
+    from storage.database import Base, engine, Session
+
+    db = Session()
+
+    data = db.query(modelName).filter(modelName.columnName == value) 
+
+> donde modelName es modelo definido y a la vez tabla de base de datos
+> para que el modelo sea tabla en la base de datos, debemos poner lo siguiente al declarar un modelo:
+
+        from storage.database import Base
+        from sqlalchemy import Column, Integer, String, Float
+
+        class Movie(Base):
+            __tablename__ = 'movies'
+            id = Column(Integer, primary_key=True)
+            title = Column(String)
+            overview = Column (String)
+            year = Column(Integer)
+            rating = Column(Float)
+            category = Column(String)
+
+# Routing
+APIRouter
+
+realizando: 
+
+        from fastapi import APIRouter, FastAPI
+
+        app = FastAPI()
+        router = APIRouter()
+
+        @router.get('/users', tags=["users"])
+        async def read_user():
+            return [blablabla]
+
+        app.inclde_router(router)
+
+## DUDA IMPORTANTE, ¿cómo vamos a utilizar todo el tokenizaicon entre dos clases?
